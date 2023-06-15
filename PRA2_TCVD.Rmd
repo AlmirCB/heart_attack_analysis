@@ -28,6 +28,10 @@ Ahora vamos a ver los datos de que se dispone para realizar un primer estudio so
 Para ello cargamos el dataset y revisamos todos las variables que disponemos, para verificar cual podemos utilizar en estudios posteriores.
 
 ```{r}
+if (!require('Hmisc')) install.packages('Hmisc'); library('Hmisc')
+```
+
+```{r}
 path = 'heart.CSV'
 df_heart <- read.csv(path, row.names=NULL)
 ```
@@ -109,6 +113,49 @@ Eliminamos los valores de caa referentes a 4
 ```{r message= FALSE, warning=FALSE}
 
 df_heart <- df_heart[!df_heart$caa == 4, ]
+
+```
+
+## Identificación y gestión de valores exremos
+
+Hacemos una última confirmación con el comando describe, para comprobar si hemos de revisar alguna variable más que pueda tener valores anómalos
+
+```{r}
+describe(df_heart)
+```
+
+
++ **oldpeack**: El valor máximo de esta variable es mucho más alto que la media. Esto no quiere deceir que sera erroneo, pero es necesario revisar si estos valores altos son correctos. 
+
++ **chol**: Al igual que el anterior, el valor máximo de esta variable es mucho más alto que la media. Volvemos a hacer la misma suposición que para la variable anterior, ya que aunque sabemos que estos valores pueden ser altos en ciertas personas, no conocemos exáctamente si estos valores son correctos y pueden afectar al los resultados del estudio. 
+
+
+Revisamos gráficamente la variable **oldpeak** para ver si tiene valores extremos.
+
+
+```{r}
+boxplot(df_heart$oldpeak, horizontal = TRUE, outline=TRUE)
+```
+
+
+Podemos ver que exsisten 4 valores atípicos que tienen valores más altos de lo normal. Aunque desconocemos si teoricamente estos valores son o no correctos, podemos asumir que son valores anómalos y extraerlos del cálculo final, ya que no va a afectar considerablemente al resultado final. 
+
+```{r message= FALSE, warning=FALSE}
+df_heart <- df_heart[!df_heart$oldpeak >= 4, ]
+
+```
+
+Gráficamos también la variable **chol**
+
+```{r}
+boxplot(df_heart$chol, horizontal = TRUE, outline=TRUE)
+```
+
+
+Al igual que con la variable **oldpeak**, estos valores no están significativamente separados. Aun así, se van a eliminar los valores anómalos. 
+
+```{r message= FALSE, warning=FALSE}
+df_heart <- df_heart[!df_heart$chol >= 400, ]
 
 ```
 
