@@ -74,4 +74,43 @@ Como se puede observar, existen 14 variables y un total de 303 datos de estas va
 Además podemos concluir que todas las variables menos **oldpeak** son variables integrales, lo que nos es muy util para la toma de decisión del tipo de estudio a realizar. 
 
 
+# Limpieza de datos
+
+Para poder iniciar el análisis de los datos, lo primero es revisar y arreglar los datos donde puedan faltar algún tipo de valores o estos sean erroneos (o puedan dar lugar a resultados erroneo)
+
+## Gestion de elementos erroneos
+
+En primer lugar buscamos todos los datos que tengan alguna variable nulla o vacía. 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+print('Blancos')
+colSums(df_heart=="")
+print('NA')
+colSums(is.na(df_heart))
+```
+
+
+Ahora vamos a reviasar los valores de las variables para comprobar si alguna de ellos tuviese valores erroneos. 
+
+
+```{r}
+summary(df_heart)
+
+```
+
+
+
++ **caa**: Esta variable nos dicen en la descripción del dataset que toma valores entre el 0 y el 3. Viendo que su valor máximo es 4, deberíamos eliminar los datos que tengan un valor 4 en esta variable y considerarlos erroneos. 
+
+
+Eliminamos los valores de caa referentes a 4
+
+
+```{r message= FALSE, warning=FALSE}
+
+df_heart <- df_heart[!df_heart$caa == 4, ]
+
+```
+
+
 
