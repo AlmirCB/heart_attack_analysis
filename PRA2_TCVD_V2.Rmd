@@ -1,0 +1,116 @@
+---
+title: "Tipología y ciclo de vide de los datos: Pr2 - Como realizar la limpieza y análisis de datos"
+author: "Alejandro Hernández Slamerón, Almir Cáceres Barraquero"
+date: "Junio 2023"
+output: 
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Descripción del dataset 
+
+
+
+# Integración y seleccion
+
+Ahora vamos a ver los datos de que se dispone para realizar un primer estudio sobre las posibles decisiones previas que se han de tomar. 
+Para ello cargamos el dataset y revisamos todos las variables que disponemos, para verificar cual podemos utilizar en estudios posteriores.
+
+```{r}
+path = 'heart.CSV'
+df_heart <- read.csv(path, row.names=NULL)
+```
+
+```{r}
+head(df_heart)
+```
+
+
+
+Vemos que disponemos de las siguientes variables para el estudio:
+
+
++ **age** Age of the patient in years
++ **sex** Sex of the patient
++ **cp** chest pain type:
+(1= typical angina, 
+2= atypical angina, 
+3= non-anginal, 
+4= asymptomatic)
++ **trtbps** resting blood pressure (in mm Hg)
++ **chol**  cholestoral in mg/dl fetched via BMI sensor
++ **fbs** fasting blood sugar > 120 mg/dl (1 = true; 0 = false)
++ **restecg** resting electrocardiographic results 
+Value 0: normal,
+Value 1: having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV),
+Value 2: showing probable or definite left ventricular hypertrophy by Estes' criteria
++ **thalachh**	 maximum heart rate achieved
++ **exan**	exang: exercise induced angina (1 = yes; 0 = no)
++ **oldpeak** ST depression induced by exercise relative to rest	
++ **slp** the slope of the peak exercise ST segment
++ **caa** 	number of major vessels (0-3) colored by fluoroscopy
++ **thall** 	3normal; fixed defect; reversible defect
++ **output** the predicted attribute  (0 = less chance of heart attack, 1= more chance of heart attack)
+
+Ahora se va a revisar que tipo de variable es cada una. 
+
+```{r}
+structure = str(df_heart)
+```
+
+Con esto tenemos la información acerca de la cantidad de datos de los que disponemos y su estructura. 
+Como se puede observar, existen 14 variables y un total de 303 datos de estas variables.
+Además podemos concluir que todas las variables menos **oldpeak** son variables integrales, lo que nos es muy util para la toma de decisión del tipo de estudio a realizar. 
+
+
+# Limpieza de datos
+
+Para poder iniciar el análisis de los datos, lo primero es revisar y arreglar los datos donde puedan faltar algún tipo de valores o estos sean erroneos (o puedan dar lugar a resultados erroneo)
+
+## Gestion de elementos erroneos
+
+En primer lugar buscamos todos los datos que tengan alguna variable nulla o vacía. 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+print('Blancos')
+colSums(df_heart=="")
+print('NA')
+colSums(is.na(df_heart))
+```
+
+
+Ahora vamos a reviasar los valores de las variables para comprobar si alguna de ellos tuviese valores erroneos. 
+
+
+```{r}
+summary(df_heart)
+
+```
+
+
+
++ **caa**: Esta variable nos dicen en la descripción del dataset que toma valores entre el 0 y el 3. Viendo que su valor máximo es 4, deberíamos eliminar los datos que tengan un valor 4 en esta variable y considerarlos erroneos. 
+
+
+Eliminamos los valores de caa referentes a 4
+
+
+```{r message= FALSE, warning=FALSE}
+
+df_heart <- df_heart[!df_heart$caa == 4, ]
+
+```
+
+
+
