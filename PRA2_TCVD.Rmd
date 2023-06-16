@@ -20,7 +20,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Descripción del dataset 
 
+El conjunto de datos seleccionado se basa en la recopilación de información de una Unidad de Cuidados Intensivos (UCI) que se especializa en el tratamiento de pacientes que han desarrollado problemas cardíacos. Estos datos abarcan una amplia gama de variables relacionadas con el estado físico de los pacientes y los resultados de análisis de sangre. Entre las variables numéricas se incluyen la frecuencia cardíaca, los niveles de colesterol, la edad y otras, mientras que las variables categóricas incluyen el tipo de afección cardíaca y los resultados del electrocardiograma. Utilizando estos datos, se puede calcular un índice que representa el grado de enfermedad cardíaca en un paciente.
 
+El objetivo principal de este estudio de datos es analizar el estado cardíaco de los pacientes y determinar qué variables tienen una mayor influencia en el desarrollo de estas enfermedades. Esto puede ayudar a establecer una relación entre el estado de un paciente y los factores de riesgo asociados, con el propósito de prevenir o identificar de manera más exhaustiva las dolencias cardíacas en los pacientes más críticos. Además, este análisis también puede contribuir a la implementación de estrategias de intervención temprana para reducir la aparición de estas enfermedades en pacientes susceptibles.
 
 # Integración y seleccion
 
