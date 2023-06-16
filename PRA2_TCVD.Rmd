@@ -280,3 +280,88 @@ Vemos que ninguna de las variables esta altamente correlacionada, por lo que no 
 Aqui vemos que, para nuestra variable de predicción **output**, la variable con una mayor correlación es la variable **thalachh** seguida por la variable **age**, que si bien tiene una correlación negativa, es bastante significativa en términos absolutos.
 
 
+## Aplicación de pruebas estadísticas
+
+### Contraste de hipótesis
+
+Ahora se van a aplicar purebas estadísticas de contraste de hipótesis para la predicción de la probabilidad de tener una enfermedad cardíaca, en función del máximo valor de pulso cardíaco. Esto se va a realacionar con la edad.
+Las hipótesis son las siguientes:
+
+
++ **Hipótesis nula:**  Un valor alto  de  **thalachh** significa valor alto de edad. 
++ **Hipótesis alternativa:** Valor de **thalachh** no afecta al valor de la edad.
+
+
+
+
+```{r}
+
+# Normalización
+min_max_norm <- function(x) {
+  (x - min(x)) / (max(x) - min(x))
+}
+
+
+# Aplicar la normalización 
+thalachh_norm <- min_max_norm(df_heart$thalachh)
+age_norm <- min_max_norm(df_heart$age)
+
+```
+
+
+```{r}
+
+mean_thalachh <- mean(thalachh_norm)
+sd_thalachh <- sd(thalachh_norm)
+
+mean_age <- mean(age_norm)
+sd_age <- sd(age_norm)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(kableExtra)
+
+tabla <- matrix(c("", "mean", "sd", "thalachh", mean_thalachh, sd_thalachh, "age", mean_age, sd_age  ), nrow = 3, ncol = 3) # He cambiado "output" por "age" como título de la segunda columna de la tabla.
+
+kable(tabla, digits=2, caption="Media y desviación estandard") %>%
+  kable_styling( latex_options=c("striped", "repeat_"),full_width = FALSE)
+
+```
+
+
+
+
+```{r}
+
+#Nivel de confianza
+
+alpha <- 1-0.98
+n_thalachh <- length(df_heart$thalachh)
+n_output <- length(df_heart$output) # ALMIR: ¿ESTO NO SIRVE PARA NADA NO?
+
+SE <- sd_thalachh / sqrt(n_thalachh)
+zobs <- (mean_age - mean_thalachh)/SE
+zobs
+
+
+```
+
+
+```{r}
+
+zcrit_L <- qnorm(alpha/2)
+zcrit_U <- qnorm(1-alpha/2)
+c(zcrit_L,zcrit_U)
+
+```
+
+```{r}
+
+pvalue <- pnorm(abs(zobs), lower.tail = FALSE)*2
+pvalue
+
+```
+
+
+El valor de p-value para esta hipótesis es menor que el valor de significancia 0.05, por lo que en este caso se rechaza la hipótesis nula. Esto nos indica que, un alto valor en la edad no significa un alto valor de máximo ritmo cardíaco, cosa que esta dentro de lo que se podría estipular. 
