@@ -33,6 +33,7 @@ Para ello cargamos el dataset y revisamos todos las variables que disponemos, pa
 if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
 if (!require('Hmisc')) install.packages('Hmisc'); library('Hmisc')
 if(!require('Rmisc')) install.packages('Rmisc'); library('Rmisc')
+if(!require("corrplot")) install.packages("corrplot"); library("corrplot")
 ```
 
 ```{r}
@@ -206,5 +207,76 @@ multiplot(plotlist = histList, coles = 1)
 
 
 Viendo las gráficas podemos observar que la variable **oldpeak** no sigue una distribución normal. Para el resto necesitaríamos utilizar distintas herramientas para confirmar la asunción o no de normalidad de los datos.
+
+También es posible aplicar pruebas de normalidad a las variables como la Shapiro-Wilk. 
+
++ **age**
+```{r}
+
+normalidad_age = shapiro.test(df_heart$age)
+normalidad_age
+```
+
+Un alto valor de estadistico W y un valor de p-value > 0,05 nos confirmarían que la distribución de esta variable es normal. En este caso no podemos afirmarlo, ya que aunque el estadístico W es alto, el valor de p-value es menor que el nivel de significancia, por lo que se rechaza la hipótesis nula de normalidad. 
+
+Esto no significa que no sea una distibución normal, ya que la prueba no es necesariamente concluyente. 
+
+
++ **trtbps**
+
+```{r}
+
+normalidad_trtbps = shapiro.test(df_heart$trtbps)
+normalidad_trtbps
+```
+
+Al igual que la variable anterior, no podemos afirmar que siga una distribución normal en base a la prueba. 
+
++ **chol**
+
+```{r}
+
+normalidad_chol = shapiro.test(df_heart$chol)
+normalidad_chol
+```
+
+En este caso tanto el estadístico W como el valor p-value están dentro del nivel de significancia para poder confirmar que se trata de una variable con distribución normal. 
+
++ **thalachh**
+
+```{r}
+
+normalidad_thalachh = shapiro.test(df_heart$thalachh)
+normalidad_thalachh
+```
+
+En este caso, no se cumple el nivel de significancia del p-value, por lo que se desmiente la hipótesis de distribución normal. 
+
++ **oldpeak**
+
+```{r}
+
+normalidad_oldpeak = shapiro.test(df_heart$oldpeak)
+normalidad_oldpeak
+```
+
+Como ya habíamos supuesto al ver la representación gráfica, esta variable no sigue una distribución normal. 
+
+Ahora vamos a ver la correlación que tienen estos datos entre si. Una alta correlación entre variables para crear un modelo indicará que podemos eliminar una de ellas del estudio, ya que esto ayuda a simplificar el problema y evita el overfeeting. Sin embargo, para realizar un estudio estadístico, una alta correlación puede ayudar a la precisión del estudio. 
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+n = c("age","trtbps","chol","thalachh", "oldpeak", "output")
+factores= df_heart %>% select(all_of(n))
+res<-cor(factores)
+corrplot(res,method="color",tl.col="black", tl.srt=30, order = "AOE",
+number.cex=0.75,sig.level = 0.01, addCoef.col = "black")
+```
+
+
+Vemos que ninguna de las variables esta altamente correlacionada, por lo que no podemos eliminar ninguna de estas variables para el estudio por medio de este criterio.
+
+Aqui vemos que, para nuestra variable de predicción **output**, la variable con una mayor correlación es la variable **thalachh** seguida por la variable **age**, que si bien tiene una correlación negativa, es bastante significativa en términos absolutos.
 
 
