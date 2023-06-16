@@ -17,26 +17,36 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+<span style="font-size: 35px;">PRÁCTICA 2</span>
+<span style="font-size: 35px;">Introducción</span>
+
+
 
 # Descripción del dataset 
 
-El conjunto de datos seleccionado se basa en la recopilación de información de una Unidad de Cuidados Intensivos (UCI) que se especializa en el tratamiento de pacientes que han desarrollado problemas cardíacos. Estos datos abarcan una amplia gama de variables relacionadas con el estado físico de los pacientes y los resultados de análisis de sangre. Entre las variables numéricas se incluyen la frecuencia cardíaca, los niveles de colesterol, la edad y otras, mientras que las variables categóricas incluyen el tipo de afección cardíaca y los resultados del electrocardiograma. Utilizando estos datos, se puede calcular un índice que representa el grado de enfermedad cardíaca en un paciente.
 
-El objetivo principal de este estudio de datos es analizar el estado cardíaco de los pacientes y determinar qué variables tienen una mayor influencia en el desarrollo de estas enfermedades. Esto puede ayudar a establecer una relación entre el estado de un paciente y los factores de riesgo asociados, con el propósito de prevenir o identificar de manera más exhaustiva las dolencias cardíacas en los pacientes más críticos. Además, este análisis también puede contribuir a la implementación de estrategias de intervención temprana para reducir la aparición de estas enfermedades en pacientes susceptibles.
+El juego de datos que se ha seleccionado está basado en los datos medicos de distintos pacientes refertentes al **desarrollo de problemas cardíacos**. Estos datos presentan una seríe de valores de los pacientes, basados en las **medidas de su estado físico**, así como de análisis de sangre efectuados. Entre otros se recogen datos numéricos como la medida de la frecuencia cardíaca, medida del colesterol, sexo, edad, y datos categóricos como el tipo de dolencia o el resultado del electrocardiograma. Con estos datos se obtiene un **valor del probabilidad de enfermedad cardíaca** en la que se puede encontrar un paciente.
+
+El objetivo anaítico de estos datos es obtener un **valor de el estado cardíaco** en el que se encuentra el paciente, y qué variables pueden afectar más a este tipo de dolencias. Con esto se podría intentar encontrar una relación del estado de un paciente para conseguir disminuir los riesgos que tiene un paciente de sufrir tales dolencias antes de que estas se produzcan o realizar un **seguimiento más exaustivo** a los pacientes más críticos. 
+
+
+
 
 # Integración y seleccion
 
-Ahora vamos a ver los datos de que se dispone para realizar un primer estudio sobre las posibles decisiones previas que se han de tomar. 
-Para ello cargamos el dataset y revisamos todos las variables que disponemos, para verificar cual podemos utilizar en estudios posteriores.
 
-```{r message= FALSE, warning=FALSE}
-# IMPORTACIÓN DE LIBRERÍAS
-
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
 if (!require('Hmisc')) install.packages('Hmisc'); library('Hmisc')
-if(!require('Rmisc')) install.packages('Rmisc'); library('Rmisc')
 if(!require("corrplot")) install.packages("corrplot"); library("corrplot")
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+if(!require('Rmisc')) install.packages('Rmisc'); library('Rmisc')
+if(!require('xfun')) install.packages('xfun'); library('xfun')
+if(!require('plyr')) install.packages('plyr'); library('plyr')
 ```
+
+Ahora vamos a ver los datos de que se dispone para realizar un primer estudio sobre las posibles decisiones previas que se han de tomar. 
+Para ello cargamos el dataset y revisamos todos las variables que disponemos, para verificar cual podemos utilizar en estudios posteriores.
 
 ```{r}
 path = 'heart.CSV'
@@ -74,6 +84,7 @@ Value 2: showing probable or definite left ventricular hypertrophy by Estes' cri
 + **thall** 	3normal; fixed defect; reversible defect
 + **output** the predicted attribute  (0 = less chance of heart attack, 1= more chance of heart attack)
 
+
 Ahora se va a revisar que tipo de variable es cada una. 
 
 ```{r}
@@ -82,7 +93,9 @@ structure = str(df_heart)
 
 Con esto tenemos la información acerca de la cantidad de datos de los que disponemos y su estructura. 
 Como se puede observar, existen 14 variables y un total de 303 datos de estas variables.
-Además podemos concluir que todas las variables menos **oldpeak** son variables integrales, lo que nos es muy util para la toma de decisión del tipo de estudio a realizar. 
+Además podemos concluir que todas las variables menos **oldpeak** son variables enteras, lo que nos es muy util para la toma de decisión del tipo de estudio a realizar. 
+
+
 
 
 # Limpieza de datos
@@ -165,6 +178,7 @@ Al igual que con la variable **oldpeak**, estos valores no están significativam
 df_heart <- df_heart[!df_heart$chol >= 400, ]
 
 ```
+
 # Análisis de los datos
 
 ## Selección de los datos
@@ -208,7 +222,8 @@ multiplot(plotlist = histList, coles = 1)
 ```
 
 
-Viendo las gráficas podemos observar que la variable **oldpeak** no sigue una distribución normal. Para el resto necesitaríamos utilizar distintas herramientas para confirmar la asunción o no de normalidad de los datos.
+Viendo las gráficas podemos observar que la variable **oldpeak** no sigue una distribución normal. Para el resto necesitaríamos utilizar distintas herramientas para confirmar la asunción o no de normalidad de los datos. 
+
 
 También es posible aplicar pruebas de normalidad a las variables como la Shapiro-Wilk. 
 
@@ -264,6 +279,8 @@ normalidad_oldpeak
 
 Como ya habíamos supuesto al ver la representación gráfica, esta variable no sigue una distribución normal. 
 
+
+
 Ahora vamos a ver la correlación que tienen estos datos entre si. Una alta correlación entre variables para crear un modelo indicará que podemos eliminar una de ellas del estudio, ya que esto ayuda a simplificar el problema y evita el overfeeting. Sin embargo, para realizar un estudio estadístico, una alta correlación puede ayudar a la precisión del estudio. 
 
 
@@ -281,10 +298,8 @@ Vemos que ninguna de las variables esta altamente correlacionada, por lo que no 
 
 Aqui vemos que, para nuestra variable de predicción **output**, la variable con una mayor correlación es la variable **thalachh** seguida por la variable **age**, que si bien tiene una correlación negativa, es bastante significativa en términos absolutos.
 
-
 ## Aplicación de pruebas estadísticas
 
-### Contraste de hipótesis
 
 Ahora se van a aplicar purebas estadísticas de contraste de hipótesis para la predicción de la probabilidad de tener una enfermedad cardíaca, en función del máximo valor de pulso cardíaco. Esto se va a realacionar con la edad.
 Las hipótesis son las siguientes:
@@ -366,7 +381,7 @@ pvalue
 ```
 
 
-El valor de p-value para esta hipótesis es menor que el valor de significancia 0.05, por lo que en este caso se rechaza la hipótesis nula. Esto nos indica que, un alto valor en la edad no significa un alto valor de máximo ritmo cardíaco, cosa que esta dentro de lo que se podría estipular.
+El valor de p-value para esta hipótesis es menor que el valor de significancia 0.05, por lo que en este caso se rechaza la hipótesis nula. Esto nos indica que, un alto valor en la edad no significa un alto valor de máximo ritmo cardíaco, cosa que esta dentro de lo que se podría estipular. 
 
 
 Podemos usar también una regresión lineal para modelar la relación entre la variable dependiente (**output**) y las variables independientes. En este caso vamos a normalzar los datos para poder aplicar correctamente el modelo lm. 
@@ -408,7 +423,7 @@ dim(test_df)
 lr_model1 <- lm( output ~ age + trtbps + chol + thalachh + oldpeak, data = train_df)
 
 # Obtener el resumen del modelo
-summary(lr_model)
+summary(lr_model1)
 
 ```
 
@@ -421,7 +436,7 @@ Como vemos en el modelo lm, no se ajusta nada al valor que se requiere, ya que h
 lr_model2 <- lm( output ~ thalachh + oldpeak, data = train_df)
 
 # Obtener el resumen del modelo
-summary(lr_model)
+summary(lr_model2)
 
 ```
 
@@ -493,7 +508,11 @@ Vemos que **slp**, **cp** y **fbs** son mayores que uno, lo que quiere decir que
 
 ```{r}
 logic_model2 = glm(formula=output~slp+thall+caa+exng+sex+cp, data=train_df, family=binomial)
+
+summary(logic_model2)
 ```
+
+Eliminando la variables con bajo valor de significancia y repitiendo el modelo logístico, vemos que el valor de estadístico AIC disminuye, lo que significa una mayor calidad en el modelo. Vamos a comparara ahora la precisión de los dos modelos. 
 
 ```{r}
 predictions = predict(logic_model, test_df)
@@ -560,4 +579,42 @@ sens = tab[2,2] / sum(tab[,2])
 sprintf("Sensibilidad:%s", sens)
 ```
 Vemos que para el set de test no existe mejora, a pesar de que si la hay si utilizamos el conjunto entero, no podemos asegurar que el modelo sea mejor.
+
+# Representación de los resultados
+
+Consideramos que la representación de los resultados ha sido realizada a lo largo de todo el documento, ya que se adapta mejor a una redacción natural de todos los apartados. 
+
+
+# Resolución del problema
+
+El objetivo de este trabajo es hacer un estudio del juego de datos **heart**, el cual tiene ciertas variables  relacionadas con enfermedades cardíacas obtenidas de pacientes. Este juego de datos tiene una variable objetivo que indica si el paciente tiene riesgo de sufrir de este tipo de enfermead.
+
+Se ha hecho una limpieza del juego de datos para verificar que no hubiese datos erroneos, vacíos o nulos. También se han eliminado los datos anómalos que se han encontrado tanto en la variable **chol** como en **oldpeak**. 
+
+Tras esto se ha hecho una revisión de la distribución de los datos, donde se han graficado para comprobar la normalidad de estos. También se ha utilizado el estadístico Shapiro-Wilk el cual comprueba la normalidad de los datos. Se ha visto que, aunque la mayoría obntenían un p-valor mayor que el necesario para asumir la normalidad, todas excepto una tenían un valor del estadístioc W muy alto, por lo que no podemos descartar la no normalidad de estas. Aun así, por el teorema del límite central podríamos asumir que las variables se comportan como distribución normal dada la gran cantidad de datos.
+
+Tras esto se ha hecho una correlación de los datos numéricos para comprobar que variables pueden estar más relaiconadas entre sí. Esto nos da la posibilidad escoger que variables son más sensibles al cambio de nuestra variable target, y de eliminar variables con mucha correlación que inducirían a un overfeeting en los estudios realizados. 
+
+Se ha separado el dataset en dos partes, para tener grupo de entrenamiento y otro de test. 
+Se ha realizado un modelo lineal de las variables numéricas, eliminado las variables poco representativas, obteniendo un modelo con precisión de casi el 80%. Aún así, con un valor de R2=0.25, se puede decir que el modelo lineal no se ajusta correctamente. 
+
+Se ha probado un modelo logístico obteniendo una precisión del 82%, con un valor del estadístico AIC=177. Esto nos dice que, aunque la precisión del modelo es alta, la calidad del modelo no lo es tanto en base al valor tan alto del estadístico. 
+
+Por último se han revisado los valores del los Odds-ratios para confirmar que variebles pueden ser consideradas de protección o de riesgo. 
+
+Como conclusión final y tras la aplicación de varios estudios estadísticos, se ha llegado a la conclusión de que la variable target **ouput** no está del todo relacionada con las variables del dataset. Esto puede deberse a que, o bien no se han aplicado los modelos estadísticos correctos, o esta variable no se ha obtenido correctamente, lo que implica que la predicción que se pude hacer de ella sea muy baja. 
+
+# Bibliografía
+
++ [Linear Models lm](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/lm)
+
++ [glm Model](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm)
+
++ [relevel](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/relevel)
+
++ [sample](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/sample)
+
++ [Split Data](https://www.statology.org/train-test-split-r/)
+
++ [ggplot2](https://rpubs.com/daniballari/ggplot)
 
