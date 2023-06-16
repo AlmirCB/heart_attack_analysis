@@ -27,8 +27,12 @@ knitr::opts_chunk$set(echo = TRUE)
 Ahora vamos a ver los datos de que se dispone para realizar un primer estudio sobre las posibles decisiones previas que se han de tomar. 
 Para ello cargamos el dataset y revisamos todos las variables que disponemos, para verificar cual podemos utilizar en estudios posteriores.
 
-```{r}
+```{r message= FALSE, warning=FALSE}
+# IMPORTACIÓN DE LIBRERÍAS
+
+if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
 if (!require('Hmisc')) install.packages('Hmisc'); library('Hmisc')
+if(!require('Rmisc')) install.packages('Rmisc'); library('Rmisc')
 ```
 
 ```{r}
@@ -158,6 +162,49 @@ Al igual que con la variable **oldpeak**, estos valores no están significativam
 df_heart <- df_heart[!df_heart$chol >= 400, ]
 
 ```
+# Análisis de los datos
 
+## Selección de los datos
+
+Una vez hecha la limpieza de datos, se pasa al proceso de análisis.
+En primer lugar se ha de definir cual es la finalidad que se busca a la hora del análisis. Para este caso, existe un valor de **output**, el cual toma valores de 0 y 1 y define menor o mayor probabilidad de tener enfermedades cardíacas respectivamente. 
+
+Para decidir el resto de variables que vamos a estudiar, vamos a revisar la distribución de las variables y la correlación que tienen entre ellas. Por ello y en lo referente a este estudio, se van a utilizar las variables cuantitativas, evitando escoger las variables con valores categóricos, las cuales se van a apartar para posibles estudios futuros más efectivos para este tipo de variables como los arboles de decisiones.
+
+
+Por ello, las variables que se van a estudiar son las siguientes:
+
++ **age** Podemos intuir que esta variable puede estar muy relacionada con las enfermedades cardíacas, ya que edades avanzadas se relacionan con aumentos de casos de este tipo
++ **trtbps** La presión sanginea tambien es una variable a tener en cuenta, puesto que altas presiones pueden derivar de/o problemas cardíacos. 
++ **chol**  El colesterol es un factor también a tener en cuenta puesto que es un medidor muy utilizado para validar la salud de un paciente. 
++ **thalachh**	No tenemos mucha información sobre esta variable, aún así podemos verificar si puede o no estar relacionada con este tipo de enfermedades.
++ **oldpeak** Esta variable también la vamos a tener en cuenta puesto que sería un punto muy favorable tener un indicador directo de la medida de ritmo cardíaco para poder interpretar este tipo de dolencias cardíacas.
++ **outpu** Este es el valor predicho que indica si existe riesgo o no sobre las dolencias cardíacas. 
+
+
+## Comprobación de la normalidad y homogeneidad de la varianza
+
+
+Ahroa se va a comprobar la distribución de las variables, graficando estas para visualizar si siguen o no una distribución normal.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=20}
+
+histList<- list()
+
+n = c("age","trtbps","chol","thalachh", "oldpeak")
+df_heart_plot = df_heart %>% select(all_of(n))
+for(y in 1:ncol(df_heart_plot)){
+  col <- names(df_heart_plot)[y]
+  ggp <- ggplot(df_heart_plot, aes_string(x = col)) +
+  geom_histogram(bins = 30, fill = "cornflowerblue", color = "black",ggtittle = "Contador de ocurrencias por variable")
+  histList[[y]] <- ggp # añadimos cada plot a la lista vacía
+}
+multiplot(plotlist = histList, coles = 1)
+
+```
+
+
+Viendo las gráficas podemos observar que la variable **oldpeak** no sigue una distribución normal. Para el resto necesitaríamos utilizar distintas herramientas para confirmar la asunción o no de normalidad de los datos.
 
 
