@@ -364,4 +364,198 @@ pvalue
 ```
 
 
-El valor de p-value para esta hipótesis es menor que el valor de significancia 0.05, por lo que en este caso se rechaza la hipótesis nula. Esto nos indica que, un alto valor en la edad no significa un alto valor de máximo ritmo cardíaco, cosa que esta dentro de lo que se podría estipular. 
+El valor de p-value para esta hipótesis es menor que el valor de significancia 0.05, por lo que en este caso se rechaza la hipótesis nula. Esto nos indica que, un alto valor en la edad no significa un alto valor de máximo ritmo cardíaco, cosa que esta dentro de lo que se podría estipular.
+
+
+Podemos usar también una regresión lineal para modelar la relación entre la variable dependiente (**output**) y las variables independientes. En este caso vamos a normalzar los datos para poder aplicar correctamente el modelo lm. 
+
+```{r}
+
+
+
+# Aplicar la normalización para tods las variables a estudiar para poder aplicar el modelo lm
+df_heart$age <- min_max_norm(df_heart$age)
+df_heart$trtbps <- min_max_norm(df_heart$trtbps)
+df_heart$chol <- min_max_norm(df_heart$chol)
+df_heart$thalachh <- min_max_norm(df_heart$thalachh)
+df_heart$oldpeak <- min_max_norm(df_heart$oldpeak)
+```
+
+
+Ahora se generan dos conjuntos, uno de test y otro de entrenamiento.
+
+```{r, echo=TRUE, eval=TRUE}
+
+# Establecer una semilla para reproducir el valor aleatorio continuamente para poder verificar el modelo creado
+set.seed(200)
+
+
+# Definimos el tamaño de las muestras del juego de datos para el entrenamiento en el 80%
+train_size <- round(0.8 * nrow(df_heart))
+
+# Crear índices para el conjunto de entrenamiento y prueba
+train_index <- sample(1:nrow(df_heart), train_size, replace = FALSE)
+train_df <- df_heart[train_index, ]
+test_df <- df_heart[-train_index, ]
+dim(train_df)
+dim(test_df)
+```
+
+```{r}
+
+lr_model1 <- lm( output ~ age + trtbps + chol + thalachh + oldpeak, data = train_df)
+
+# Obtener el resumen del modelo
+summary(lr_model)
+
+```
+
+
+Como vemos en el modelo lm, no se ajusta nada al valor que se requiere, ya que hay variables que tiene un p-value > 0,05. Eliminando estas variables podremos ajustar mejor el valor del modelo. 
+
+
+```{r}
+
+lr_model2 <- lm( output ~ thalachh + oldpeak, data = train_df)
+
+# Obtener el resumen del modelo
+summary(lr_model)
+
+```
+
+Si bien no en gran medida, el ajuste ha bajado un poco. Las variables no tenían mucho peso sin embargo si que aportaban positivamente. Vamos a evaluar ambos modelos.
+```{r}
+predictions = predict(lr_model1, test_df)
+tab = table(predictions>0.5, test_df$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+predictions = predict(lr_model2, test_df)
+tab = table(predictions>0.5, test_df$output)
+tab
+sum(diag(tab)) / sum(tab)
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+cat("")
+```
+Podemos ver que la eliminación de las variables ha mejorado el resultado, hemos pasado de 15 negativos y 25 positivos bien detectados a 17 y 28, respectivamente, ganando en total un 8% de precisión.El modelo es aceptable, la sensibilidad del modelo es del 84%, lo cual es bastante bueno ya que el factor crítico aquí es detectar los positivos, los falsos positivos no tienen tanta criticidad.
+
+Por último se va a predecir todo el modelo para observar el resultado.
+```{r}
+sum(tab[,2])
+```
+
+```{r}
+predictions = predict(lr_model1, df_heart)
+tab = table(predictions>0.5, df_heart$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+predictions = predict(lr_model2, df_heart)
+tab = table(predictions>0.5, df_heart$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+```
+
+Habiendo predicho todo el dataset podemos ver que la mejoría en el segundo modelo se reduce, aunque sigue estando presente.
+Al ser un modelo lineal vemos que además la presencia de sobrentrenamiento es nula, de hecho los resultados han empeorado al incluir todo el dataset.
+
+La precisión en este caso es del 73% y la sensibilidad del 82%.
+
+Ahora vamos a probar con un modelo lógico, entrenándolo con las variables categóricas. 
+
+```{r}
+logic_model = glm(formula=output~slp+thall+caa+exng+restecg+sex+cp+fbs, data=train_df, family=binomial)
+summary(logic_model)
+```
+Vemos que el nivel de significancia de restecg y el de fbs son muy bajos, su valor p no está por debajo de 0.05. Vamos a representar también la criticidad de cada una de las variables ante la presencia de positivos.
+
+```{r}
+exp(coefficients(logic_model))
+```
+Vemos que **slp**, **cp** y **fbs** son mayores que uno, lo que quiere decir que la influencia de estas variables es alta en la presencia de 1 como output.
+
+
+```{r}
+logic_model2 = glm(formula=output~slp+thall+caa+exng+sex+cp, data=train_df, family=binomial)
+```
+
+```{r}
+predictions = predict(logic_model, test_df)
+tab = table(predictions>0.5, test_df$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+
+predictions = predict(logic_model2, test_df)
+tab = table(predictions>0.5, test_df$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+```
+Vemos que los resultados son muy similares al modelo anterior, sin embargo la eliminación de variables que habíamos detectado que tenían un bajo valor de significancia en este caso empeoran sutilmente el resultado, repercutiendo con una pérdida de un casi 2% de precisión y 3% de sensibilidad.
+
+Se presentan de nuevo los resultados para todo el dataset.
+
+```{r}
+predictions = predict(logic_model, df_heart)
+tab = table(predictions>0.5, df_heart$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+
+predictions = predict(logic_model2, df_heart)
+tab = table(predictions>0.5, df_heart$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+```
+El resultado para todo el dataset si que es mejor que del del modelo lineal y se dispersa un poco las pérdidas del modelo ajustado con menos variables. Vamos a añadir las dos variables discretas con las que hemos ajustado el modelo **lm** y observar si obtenemos una mejora en las predicciones.
+
+```{r}
+logic_model3 = glm(formula=output~slp+thall+caa+exng+restecg+sex+cp+fbs+thalachh+oldpeak, data=train_df, family=binomial)
+
+predictions = predict(logic_model3, test_df)
+tab = table(predictions>0.5, test_df$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+
+
+predictions = predict(logic_model3, df_heart)
+tab = table(predictions>0.5, df_heart$output)
+tab
+acc = sum(diag(tab)) / sum(tab)
+sprintf("Precisión: %s", acc)
+sens = tab[2,2] / sum(tab[,2])
+sprintf("Sensibilidad:%s", sens)
+```
+Vemos que para el set de test no existe mejora, a pesar de que si la hay si utilizamos el conjunto entero, no podemos asegurar que el modelo sea mejor.
+
